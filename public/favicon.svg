@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#131314" />
+  <rect x="10" y="12" width="44" height="40" rx="6" fill="#1f1c20" />
+  <path d="M10 32h44" stroke="#080809" stroke-width="2" />
+  <path d="M10 31h44" stroke="rgba(229,226,227,0.08)" stroke-width="1" />
+  <text
+    x="32"
+    y="29"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="18"
+    font-weight="700"
+    fill="#E5E2E3"
+  >
+    S
+  </text>
+  <text
+    x="32"
+    y="42"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="18"
+    font-weight="700"
+    fill="#FFB000"
+  >
+    F
+  </text>
+</svg>
