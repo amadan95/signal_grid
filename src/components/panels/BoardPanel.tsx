@@ -1,4 +1,5 @@
 import { useSplitFlapStore } from '../../store/useSplitFlapStore';
+import { clamp } from '../../utils/layout';
 
 export function BoardPanel() {
   const boardConfig = useSplitFlapStore((state) => state.boardConfig);
@@ -11,9 +12,13 @@ export function BoardPanel() {
           <span>Columns</span>
           <input
             inputMode="numeric"
-            max={24}
+            max={36}
             min={12}
-            onChange={(event) => setBoardConfig({ columns: Number(event.target.value) })}
+            onChange={(event) =>
+              setBoardConfig({
+                columns: clamp(Number(event.target.value), 12, 36),
+              })
+            }
             type="number"
             value={boardConfig.columns}
           />
@@ -22,9 +27,13 @@ export function BoardPanel() {
           <span>Rows</span>
           <input
             inputMode="numeric"
-            max={6}
+            max={8}
             min={3}
-            onChange={(event) => setBoardConfig({ rows: Number(event.target.value) })}
+            onChange={(event) =>
+              setBoardConfig({
+                rows: clamp(Number(event.target.value), 3, 8),
+              })
+            }
             type="number"
             value={boardConfig.rows}
           />

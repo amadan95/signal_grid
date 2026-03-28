@@ -1,5 +1,5 @@
 import { DEFAULT_CHARACTER_SET } from '../constants';
-import type { BoardConfig } from '../types';
+import type { BoardConfig, BoardThemeHint } from '../types';
 
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -82,6 +82,23 @@ export const fitLinesToBoard = (
   }
 
   return next;
+};
+
+export const fitCellHintsToBoard = (
+  rows: Array<Array<BoardThemeHint | undefined>> | undefined,
+  config: BoardConfig,
+) => {
+  const next = (rows ?? [])
+    .slice(0, config.rows)
+    .map((row) => row.slice(0, config.columns));
+
+  while (next.length < config.rows) {
+    next.push([]);
+  }
+
+  return next.map((row) =>
+    Array.from({ length: config.columns }, (_, index) => row[index]),
+  );
 };
 
 export const boardLinesToChars = (lines: string[]): string[] =>

@@ -1,3 +1,4 @@
+import { buildMarketBoardLine } from './marketLine';
 import { formatTimestamp } from '../utils/layout';
 import type { Adapter, AdapterFetchContext } from '../types';
 
@@ -30,20 +31,21 @@ export const mockStocksAdapter: Adapter<StockData> = {
     timestamp: formatTimestamp(now),
   }),
   normalizeToBoardLines: (data, boardConfig) => {
+    const marketRows = data.tickers
+      .slice(0, boardConfig.rows - 1)
+      .map((stock) => buildMarketBoardLine(stock.symbol, stock.price, stock.change, 1));
     const lines = [
       'MARKET WATCH',
-      ...data.tickers.slice(0, boardConfig.rows - 1).map((stock) => {
-        const direction = stock.change >= 0 ? '+' : '-';
-        return `${stock.symbol} ${stock.price.toFixed(1)} ${direction}${Math.abs(stock.change).toFixed(1)}`;
-      }),
+      ...marketRows.map((row) => row.text),
     ];
 
     return {
       title: 'MARKET WATCH',
       lines,
+      cellHints: [[], ...marketRows.map((row) => row.hints)],
       timestamp: data.timestamp,
       status: 'ready',
-      themeHint: data.tickers.some((stock) => stock.change < 0) ? 'alert' : 'success',
+      themeHint: 'default',
     };
   },
 };

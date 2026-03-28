@@ -53,8 +53,8 @@ interface PersistedSplitFlapState {
 }
 
 const defaultBoardConfig: BoardConfig = {
-  columns: 20,
-  rows: 4,
+  columns: 30,
+  rows: 6,
   animationMode: 'mechanical',
   ripple: 1,
   flipDurationMs: 160,
@@ -138,9 +138,12 @@ export const useSplitFlapStore = create<SplitFlapState>()(
     }),
     {
       name: 'split-flap-display-store',
-      version: 3,
+      version: 4,
       migrate: (persistedState) => {
         const state = persistedState as Partial<PersistedSplitFlapState>;
+        const nextColumns = state.boardConfig?.columns ?? defaultBoardConfig.columns;
+        const nextRows = state.boardConfig?.rows ?? defaultBoardConfig.rows;
+
         return {
           ...defaultPersistedState,
           ...state,
@@ -148,6 +151,8 @@ export const useSplitFlapStore = create<SplitFlapState>()(
           boardConfig: {
             ...defaultBoardConfig,
             ...state.boardConfig,
+            columns: Math.max(defaultBoardConfig.columns, nextColumns),
+            rows: Math.max(defaultBoardConfig.rows, nextRows),
             characterSet: DEFAULT_CHARACTER_SET,
           },
         };

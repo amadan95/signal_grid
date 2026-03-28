@@ -3,11 +3,12 @@ import type { BoardThemeHint } from '../types';
 
 interface SplitFlapRowProps {
   rowText: string;
+  cellHints?: Array<BoardThemeHint | undefined>;
   delays: number[];
   hint?: BoardThemeHint;
 }
 
-export function SplitFlapRow({ rowText, delays, hint }: SplitFlapRowProps) {
+export function SplitFlapRow({ rowText, cellHints, delays, hint }: SplitFlapRowProps) {
   return (
     <div
       className="splitFlapRow"
@@ -19,7 +20,7 @@ export function SplitFlapRow({ rowText, delays, hint }: SplitFlapRowProps) {
           key={index}
           char={char}
           delayMs={delays[index] ?? 0}
-          hint={hint}
+          hint={cellHints?.[index] ?? hint}
         />
       ))}
     </div>

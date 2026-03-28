@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { buildBoardSchedule } from '../engine/animationScheduler';
-import { fitLinesToBoard } from '../utils/layout';
+import { fitCellHintsToBoard, fitLinesToBoard } from '../utils/layout';
 import { SplitFlapRow } from './SplitFlapRow';
 import { useSplitFlapStore } from '../store/useSplitFlapStore';
 import type { DisplayPayload } from '../types';
@@ -47,6 +47,10 @@ export function SplitFlapBoard({ feedLabel, payload }: SplitFlapBoardProps) {
     () => fitLinesToBoard(payload.lines, renderConfig),
     [payload.lines, renderConfig],
   );
+  const normalizedCellHints = useMemo(
+    () => fitCellHintsToBoard(payload.cellHints, renderConfig),
+    [payload.cellHints, renderConfig],
+  );
 
   const rowDelays = useMemo(() => {
     const schedule = buildBoardSchedule(renderConfig);
@@ -80,6 +84,7 @@ export function SplitFlapBoard({ feedLabel, payload }: SplitFlapBoardProps) {
         >
           {normalizedLines.map((rowText, index) => (
             <SplitFlapRow
+              cellHints={normalizedCellHints[index]}
               key={index}
               rowText={rowText}
               delays={rowDelays[index] ?? []}

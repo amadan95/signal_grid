@@ -1,3 +1,4 @@
+import { buildMarketBoardLine } from './marketLine';
 import { fetchTwelveDataQuotes } from '../services/twelveData';
 import { formatTimestamp } from '../utils/layout';
 import type { Adapter, AdapterFetchContext } from '../types';
@@ -22,22 +23,23 @@ export const liveStocksAdapter: Adapter<LiveStocksData> = {
     timestamp: formatTimestamp(now),
   }),
   normalizeToBoardLines: (data, boardConfig) => {
+    const marketRows = data.tickers
+      .slice(0, boardConfig.rows - 1)
+      .map((stock) =>
+        buildMarketBoardLine(stock.symbol, stock.price, stock.percentChange),
+      );
     const lines = [
       'MARKET WATCH',
-      ...data.tickers.slice(0, boardConfig.rows - 1).map((stock) => {
-        const direction = stock.percentChange >= 0 ? '+' : '-';
-        return `${stock.symbol} ${stock.price.toFixed(2)} ${direction}${Math.abs(
-          stock.percentChange,
-        ).toFixed(1)}`;
-      }),
+      ...marketRows.map((row) => row.text),
     ];
 
     return {
       title: 'LIVE MARKET',
       lines,
+      cellHints: [[], ...marketRows.map((row) => row.hints)],
       timestamp: data.timestamp,
       status: 'ready',
-      themeHint: data.tickers.some((stock) => stock.change < 0) ? 'alert' : 'success',
+      themeHint: 'default',
     };
   },
 };

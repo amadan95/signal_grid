@@ -18,6 +18,7 @@ export interface BoardConfig {
 export interface DisplayPayload {
   title: string;
   lines: string[];
+  cellHints?: Array<Array<BoardThemeHint | undefined>>;
   timestamp: string;
   status: BoardStatus;
   themeHint?: BoardThemeHint;
