@@ -5,18 +5,12 @@ export function BoardPanel() {
   const setBoardConfig = useSplitFlapStore((state) => state.setBoardConfig);
 
   return (
-    <section className="controlPanelSection">
-      <div className="controlPanelSection__header">
-        <div>
-          <h3>Board mechanics</h3>
-          <p>Set the cell count and how the flip train ripples across the board.</p>
-        </div>
-      </div>
-
+    <>
       <div className="gridFields">
         <label className="field">
           <span>Columns</span>
           <input
+            inputMode="numeric"
             max={24}
             min={12}
             onChange={(event) => setBoardConfig({ columns: Number(event.target.value) })}
@@ -27,6 +21,7 @@ export function BoardPanel() {
         <label className="field">
           <span>Rows</span>
           <input
+            inputMode="numeric"
             max={6}
             min={3}
             onChange={(event) => setBoardConfig({ rows: Number(event.target.value) })}
@@ -37,7 +32,7 @@ export function BoardPanel() {
       </div>
 
       <label className="field">
-        <span>Animation mode</span>
+        <span>Mode</span>
         <select
           onChange={(event) =>
             setBoardConfig({
@@ -54,7 +49,7 @@ export function BoardPanel() {
 
       <label className="rangeField">
         <div className="rangeField__header">
-          <span>Flip duration</span>
+          <span>Flip speed</span>
           <strong>{boardConfig.flipDurationMs} ms</strong>
         </div>
         <input
@@ -83,6 +78,6 @@ export function BoardPanel() {
           value={boardConfig.ripple}
         />
       </label>
-    </section>
+    </>
   );
 }

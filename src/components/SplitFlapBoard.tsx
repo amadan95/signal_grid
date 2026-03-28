@@ -19,38 +19,64 @@ const statusLabels: Record<DisplayPayload['status'], string> = {
 
 export function SplitFlapBoard({ feedLabel, payload }: SplitFlapBoardProps) {
   const boardConfig = useSplitFlapStore((state) => state.boardConfig);
+  const secondaryLabel =
+    payload.title.trim() && payload.title.toUpperCase() !== feedLabel.toUpperCase()
+      ? payload.title
+      : null;
+  const visibleRows = useMemo(() => {
+    const lastContentRowIndex = payload.lines.reduce((lastIndex, line, index) => {
+      return line.trim().length > 0 ? index : lastIndex;
+    }, -1);
+
+    if (lastContentRowIndex < 0) {
+      return boardConfig.rows;
+    }
+
+    return Math.max(3, Math.min(boardConfig.rows, lastContentRowIndex + 1));
+  }, [boardConfig.rows, payload.lines]);
+
+  const renderConfig = useMemo(
+    () => ({
+      ...boardConfig,
+      rows: visibleRows,
+    }),
+    [boardConfig, visibleRows],
+  );
 
   const normalizedLines = useMemo(
-    () => fitLinesToBoard(payload.lines, boardConfig),
-    [boardConfig, payload.lines],
+    () => fitLinesToBoard(payload.lines, renderConfig),
+    [payload.lines, renderConfig],
   );
 
   const rowDelays = useMemo(() => {
-    const schedule = buildBoardSchedule(boardConfig);
-    return Array.from({ length: boardConfig.rows }, (_, rowIndex) =>
+    const schedule = buildBoardSchedule(renderConfig);
+    return Array.from({ length: renderConfig.rows }, (_, rowIndex) =>
       schedule
         .filter((cell) => cell.row === rowIndex)
         .sort((left, right) => left.column - right.column)
         .map((cell) => cell.delayMs),
     );
-  }, [boardConfig]);
+  }, [renderConfig]);
 
   return (
     <section className="boardConsole">
       <div className={`boardFrame hint-${payload.themeHint ?? 'default'}`}>
-        <div className="boardFrame__hud">
-          <div className="boardChip">{feedLabel}</div>
-          <div className="boardChip boardChip--muted">{payload.title}</div>
-          <div className={`boardChip boardChip--status status-${payload.status}`}>
+        <div className="boardTelemetry">
+          <div className="boardTelemetry__sourceGroup">
+            <span className="boardTelemetry__source">{feedLabel}</span>
+            {secondaryLabel ? (
+              <span className="boardTelemetry__detail">{secondaryLabel}</span>
+            ) : null}
+          </div>
+          <div className={`boardTelemetry__status status-${payload.status}`}>
             <span className="statusDot" />
             <span>{statusLabels[payload.status]}</span>
-            <span className="boardChip__divider" />
-            <span>{payload.timestamp}</span>
           </div>
+          <div className="boardTelemetry__timestamp">{payload.timestamp}</div>
         </div>
         <div
           className="boardFrame__inner"
-          style={{ ['--board-rows' as string]: String(boardConfig.rows) }}
+          style={{ ['--board-rows' as string]: String(visibleRows) }}
         >
           {normalizedLines.map((rowText, index) => (
             <SplitFlapRow

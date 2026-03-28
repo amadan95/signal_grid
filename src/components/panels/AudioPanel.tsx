@@ -7,18 +7,11 @@ export function AudioPanel() {
   const setReducedMotion = useSplitFlapStore((state) => state.setReducedMotion);
 
   return (
-    <section className="controlPanelSection">
-      <div className="controlPanelSection__header">
-        <div>
-          <h3>Sound and motion</h3>
-          <p>Keep the board tactile without flooding the room when many cells move at once.</p>
-        </div>
-      </div>
-
+    <>
       <label className="switchRow">
         <div className="switchRow__copy">
-          <strong>Mute system</strong>
-          <small>Disable flap clicks while keeping the visual motion intact.</small>
+          <strong>Mute</strong>
+          <small>Disable flap clicks.</small>
         </div>
         <input
           checked={audio.muted}
@@ -44,7 +37,7 @@ export function AudioPanel() {
 
       <label className="rangeField">
         <div className="rangeField__header">
-          <span>Sound density</span>
+          <span>Density</span>
           <strong>{Math.round(audio.density * 100)}%</strong>
         </div>
         <input
@@ -60,7 +53,7 @@ export function AudioPanel() {
       <label className="switchRow">
         <div className="switchRow__copy">
           <strong>Reduced motion</strong>
-          <small>Shortens animation travel for quieter visual motion.</small>
+          <small>Use quieter motion.</small>
         </div>
         <input
           checked={reducedMotion}
@@ -68,6 +61,6 @@ export function AudioPanel() {
           type="checkbox"
         />
       </label>
-    </section>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, type KeyboardEventHandler } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { SettingsPanel } from './components/SettingsPanel';
 import { SplitFlapBoard } from './components/SplitFlapBoard';
@@ -7,9 +7,27 @@ import { useSystemPreferences } from './hooks/useSystemPreferences';
 import { useSplitFlapStore } from './store/useSplitFlapStore';
 import { themes } from './theme/themes';
 
+const focusableSelector = [
+  'button:not([disabled])',
+  '[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+const getFocusableElements = (container: HTMLElement | null) =>
+  container
+    ? Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+        (element) => !element.hasAttribute('hidden') && element.offsetParent !== null,
+      )
+    : [];
+
 function App() {
   const registry = useDisplayController();
   useSystemPreferences();
+  const drawerRef = useRef<HTMLElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
 
   const {
     activeFeedId,
@@ -41,6 +59,13 @@ function App() {
     [activeFeedId, registry],
   );
 
+  const closeControlDeck = () => {
+    setControlDeckCollapsed(true);
+    window.requestAnimationFrame(() => {
+      toggleRef.current?.focus();
+    });
+  };
+
   useEffect(() => {
     const listener = () => {
       setFullscreen(Boolean(document.fullscreenElement));
@@ -49,6 +74,35 @@ function App() {
     document.addEventListener('fullscreenchange', listener);
     return () => document.removeEventListener('fullscreenchange', listener);
   }, [setFullscreen]);
+
+  useEffect(() => {
+    document.title = `${activeFeedName} - Signal Grid`;
+  }, [activeFeedName]);
+
+  useEffect(() => {
+    if (controlDeckCollapsed) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      const panel = drawerRef.current;
+      const [firstFocusable] = getFocusableElements(panel);
+      (firstFocusable ?? panel)?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [controlDeckCollapsed]);
+
+  useEffect(() => {
+    if (controlDeckCollapsed) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      closeControlDeck();
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [controlDeckCollapsed]);
 
   const handleToggleFullscreen = async () => {
     if (!document.fullscreenElement) {
@@ -59,36 +113,35 @@ function App() {
     await document.exitFullscreen();
   };
 
+  const handleDrawerKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
+    if (event.key !== 'Tab') return;
+
+    const focusableElements = getFocusableElements(drawerRef.current);
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+      return;
+    }
+
+    if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  };
+
   return (
     <div className={`appShell ${themeClassName}`}>
       <div className="ambientBackdrop" />
-      <button
-        aria-expanded={!controlDeckCollapsed}
-        aria-label={controlDeckCollapsed ? 'Show controls' : 'Hide controls'}
-        className={`controlDeckToggle ${
-          controlDeckCollapsed ? 'is-collapsed' : 'is-expanded'
-        }`}
-        onClick={() => setControlDeckCollapsed(!controlDeckCollapsed)}
-        type="button"
-      >
-        <svg
-          aria-hidden="true"
-          className="controlDeckToggle__icon"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <rect x="3" y="4" width="4" height="16" rx="1.25" />
-          <path d="M10 7H20" />
-          <path d="M10 12H20" />
-          <path d="M10 17H20" />
-        </svg>
-      </button>
-
       {!controlDeckCollapsed ? (
         <button
           aria-label="Hide controls"
           className="controlDeckScrim"
-          onClick={() => setControlDeckCollapsed(true)}
+          onClick={closeControlDeck}
           type="button"
         />
       ) : null}
@@ -98,6 +151,34 @@ function App() {
           controlDeckCollapsed ? 'is-controlDeckCollapsed' : 'has-controlDeck'
         }`}
       >
+        <button
+          aria-controls="signal-grid-controls"
+          aria-expanded={!controlDeckCollapsed}
+          aria-label={controlDeckCollapsed ? 'Show controls' : 'Hide controls'}
+          className={`controlDeckToggle ${
+            controlDeckCollapsed ? 'is-collapsed' : 'is-expanded'
+          }`}
+          onClick={() =>
+            controlDeckCollapsed
+              ? setControlDeckCollapsed(false)
+              : closeControlDeck()
+          }
+          ref={toggleRef}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            className="controlDeckToggle__icon"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3.5" y="4.5" width="5" height="15" rx="1.5" />
+            <path d="M11 7.5H20" />
+            <path d="M11 12H20" />
+            <path d="M11 16.5H20" />
+          </svg>
+        </button>
+
         <main className="displayStage">
           <SplitFlapBoard feedLabel={activeFeedName} payload={currentPayload} />
         </main>
@@ -110,8 +191,10 @@ function App() {
         }))}
         fullscreen={fullscreen}
         isOpen={!controlDeckCollapsed}
-        onToggleDock={() => setControlDeckCollapsed(true)}
+        onClose={closeControlDeck}
+        onKeyDown={handleDrawerKeyDown}
         onToggleFullscreen={handleToggleFullscreen}
+        ref={drawerRef}
       />
     </div>
   );
