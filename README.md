@@ -82,12 +82,9 @@ Current live feeds:
 - `Live Sports`: NewsAPI `top-headlines` with the sports category
 - `Live Markets`: Twelve Data quotes for the configured symbols
 
-Current mock feeds:
+Available manual feed:
 
 - `Custom Message`
-- `Mock News`
-- `Mock Stocks`
-- `Mock Weather`
 
 ## Important API Key Caveat
 

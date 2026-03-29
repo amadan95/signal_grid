@@ -927,8 +927,8 @@ code {
 .feedOption input[type='checkbox']::before {
   content: '';
   position: absolute;
-  top: 1px;
-  left: 1px;
+  top: 50%;
+  left: 0.12rem;
   width: 1.1rem;
   height: 1.1rem;
   border-radius: 50%;
@@ -937,6 +937,7 @@ code {
   transition:
     transform var(--motion-fast),
     background var(--motion-fast);
+  transform: translateY(-50%);
 }
 
 .switchRow input[type='checkbox']:checked,
@@ -948,7 +949,7 @@ code {
 
 .switchRow input[type='checkbox']:checked::before,
 .feedOption input[type='checkbox']:checked::before {
-  transform: translateX(0.98rem);
+  transform: translate(0.98rem, -50%);
   background: var(--accent-primary);
 }
 

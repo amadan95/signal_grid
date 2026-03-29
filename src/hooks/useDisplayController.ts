@@ -34,6 +34,10 @@ export function useDisplayController() {
     () => Object.fromEntries(registry.map((adapter) => [adapter.id, adapter])),
     [registry],
   );
+  const availablePlaylist = useMemo(
+    () => playlist.filter((adapterId) => Boolean(registryMap[adapterId])),
+    [playlist, registryMap],
+  );
   const rotationIndexRef = useRef(0);
 
   useEffect(() => {
@@ -120,6 +124,12 @@ export function useDisplayController() {
   ]);
 
   useEffect(() => {
+    if (registry.length === 0) return;
+    if (registryMap[activeFeedId]) return;
+    setActiveFeedId(registry[0].id);
+  }, [activeFeedId, registry, registryMap, setActiveFeedId]);
+
+  useEffect(() => {
     const activeSnapshot = feedSnapshots[activeFeedId];
     if (activeSnapshot) {
       setCurrentPayload(activeSnapshot.payload);
@@ -127,22 +137,22 @@ export function useDisplayController() {
   }, [activeFeedId, feedSnapshots, setCurrentPayload]);
 
   useEffect(() => {
-    const activeIndex = playlist.indexOf(activeFeedId);
+    const activeIndex = availablePlaylist.indexOf(activeFeedId);
     if (activeIndex >= 0) {
       rotationIndexRef.current = activeIndex;
     }
-  }, [activeFeedId, playlist]);
+  }, [activeFeedId, availablePlaylist]);
 
   useEffect(() => {
-    if (!rotationEnabled || playlist.length === 0) return;
+    if (!rotationEnabled || availablePlaylist.length === 0) return;
 
     const intervalId = window.setInterval(() => {
-      rotationIndexRef.current = (rotationIndexRef.current + 1) % playlist.length;
-      setActiveFeedId(playlist[rotationIndexRef.current]);
+      rotationIndexRef.current = (rotationIndexRef.current + 1) % availablePlaylist.length;
+      setActiveFeedId(availablePlaylist[rotationIndexRef.current]);
     }, rotationIntervalMs);
 
     return () => window.clearInterval(intervalId);
-  }, [playlist, rotationEnabled, rotationIntervalMs, setActiveFeedId]);
+  }, [availablePlaylist, rotationEnabled, rotationIntervalMs, setActiveFeedId]);
 
   return registry;
 }

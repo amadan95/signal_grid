@@ -52,6 +52,8 @@ interface PersistedSplitFlapState {
   customMessage: string;
 }
 
+const liveFeedIds = ['customMessage', 'liveNews', 'liveSports', 'liveStocks'];
+
 const defaultBoardConfig: BoardConfig = {
   columns: 30,
   rows: 6,
@@ -82,7 +84,7 @@ const defaultPersistedState: PersistedSplitFlapState = {
   rotationEnabled: true,
   rotationIntervalMs: 6000,
   activeFeedId: 'customMessage',
-  playlist: ['customMessage', 'mockNews', 'mockStocks', 'mockWeather'],
+  playlist: liveFeedIds,
   customMessage: DEFAULT_CUSTOM_MESSAGE,
 };
 
@@ -138,16 +140,24 @@ export const useSplitFlapStore = create<SplitFlapState>()(
     }),
     {
       name: 'split-flap-display-store',
-      version: 4,
+      version: 5,
       migrate: (persistedState) => {
         const state = persistedState as Partial<PersistedSplitFlapState>;
         const nextColumns = state.boardConfig?.columns ?? defaultBoardConfig.columns;
         const nextRows = state.boardConfig?.rows ?? defaultBoardConfig.rows;
+        const nextPlaylist =
+          state.playlist?.filter((feedId) => liveFeedIds.includes(feedId)) ??
+          defaultPersistedState.playlist;
+        const nextActiveFeedId = liveFeedIds.includes(state.activeFeedId ?? '')
+          ? (state.activeFeedId as string)
+          : nextPlaylist[0] ?? 'customMessage';
 
         return {
           ...defaultPersistedState,
           ...state,
           controlDeckCollapsed: true,
+          activeFeedId: nextActiveFeedId,
+          playlist: nextPlaylist.length > 0 ? nextPlaylist : ['customMessage'],
           boardConfig: {
             ...defaultBoardConfig,
             ...state.boardConfig,
